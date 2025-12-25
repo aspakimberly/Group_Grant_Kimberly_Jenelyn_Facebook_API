@@ -1,0 +1,770 @@
+:root{
+  --bg0:#070b16;
+  --bg1:#0b1222;
+
+  --panel: rgba(255,255,255,0.06);
+  --panel2: rgba(255,255,255,0.09);
+
+  --stroke: rgba(255,255,255,0.14);
+  --stroke2: rgba(255,255,255,0.10);
+
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.64);
+
+  --primaryStroke: rgba(96,165,250,0.60);
+  --primaryBgA: rgba(96,165,250,0.24);
+  --primaryBgB: rgba(96,165,250,0.14);
+
+  --badBg: rgba(251,113,133,0.16);
+  --badStroke: rgba(251,113,133,0.52);
+
+  --okBg: rgba(34,197,94,0.12);
+  --okStroke: rgba(34,197,94,0.48);
+
+  --radius: 18px;
+  --radius2: 16px;
+
+  --shadow: 0 14px 40px rgba(0,0,0,0.35);
+  --shadow2: 0 10px 26px rgba(0,0,0,0.28);
+
+  --gap: 14px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color: var(--text);
+  background:
+    radial-gradient(1000px 600px at 18% 10%, rgba(29,78,216,0.55) 0%, transparent 55%),
+    radial-gradient(900px 560px at 85% 12%, rgba(109,40,217,0.50) 0%, transparent 58%),
+    radial-gradient(900px 700px at 50% 90%, rgba(14,165,233,0.18) 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
+
+/* App shell */
+.app{
+  width: min(1280px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 18px 0 18px;
+  display: grid;
+  gap: var(--gap);
+}
+
+/* Surfaces */
+.topbar,
+.sidebar,
+.card,
+.bar{
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow2);
+}
+
+/* ===================== TOPBAR (main actions live here) ===================== */
+.topbar{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto auto; /* <-- 2 rows */
+  gap: 12px;
+  padding: 14px 16px;
+  align-items: center;
+}
+
+.topbar__left{
+  grid-column: 1;
+  grid-row: 1;        /* align with token row */
+  display:flex;
+  align-items:center;
+}
+
+.topbar__center{
+  grid-column: 2;
+  grid-row: 1;        /* align with token row */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.topbar__right{
+  grid-column: 3;
+  grid-row: 1 / span 2; /* occupies both rows cleanly */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "token fetch"
+    "auth  auth";
+  gap: 10px;
+  align-items: center;
+  justify-content: end;
+}
+
+
+/* Token + Fetch placement */
+.tokenInline{ grid-area: token; justify-self: end; width: min(560px, 56vw); }
+#btnFetch{ grid-area: fetch; }
+
+/* Auth row becomes a clean little pair aligned to the right under Fetch */
+#btnLogin, #btnLogout{
+  width: 112px; /* consistent button widths so it looks deliberate */
+}
+
+#btnLogin{ grid-area: auth; justify-self: end; }
+#btnLogout{ grid-area: auth; justify-self: end; }
+
+/* Put login + logout side-by-side inside the same grid cell using a wrapper via CSS-only:
+   We can't add HTML wrappers, so we "fake" it by turning the auth area into a 2-col mini-grid.
+   We do it by making both buttons share the same area AND positioning them with translate.
+*/
+#btnLogin{
+  transform: translateX(-122px); /* place left */
+}
+#btnLogout{
+  transform: translateX(0px);    /* place right */
+}
+
+/* Divider inside topbar right is not needed now */
+.topbar__divider{ display:none; }
+
+/* Brand */
+.brand{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.brand__mark{
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 1000;
+  letter-spacing: 0.4px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: linear-gradient(180deg, rgba(96,165,250,0.18), rgba(96,165,250,0.08));
+  color: rgba(255,255,255,0.92);
+}
+
+.brand__title{
+  margin:0;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+}
+.brand__sub{
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+/* Status group */
+.statusGroup{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content:center;
+}
+
+/* Status pill */
+.pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255,255,255,0.06);
+  white-space: nowrap;
+}
+.pill--ok{
+  border-color: var(--okStroke);
+  background: var(--okBg);
+  color: rgba(235,255,243,0.92);
+}
+.pill--bad{
+  border-color: var(--badStroke);
+  background: var(--badBg);
+  color: rgba(255,235,240,0.92);
+}
+
+/* Session */
+.session{
+  display:flex;
+  gap: 8px;
+  align-items:center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke2);
+  background: rgba(0,0,0,0.18);
+}
+.session__label{
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+}
+.session__state{
+  font-size: 12px;
+  color: rgba(255,255,255,0.74);
+  font-weight: 900;
+}
+.session__state--ok{
+  color: rgba(235,255,243,0.92);
+}
+
+/* Buttons */
+.btn{
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, opacity 140ms ease;
+}
+.btn:hover{
+  border-color: rgba(96,165,250,0.55);
+  transform: translateY(-1px);
+}
+.btn:active{ transform: translateY(0px); }
+.btn:disabled{
+  opacity: 0.55;
+  cursor:not-allowed;
+  transform: none;
+}
+.btn--primary{
+  background: linear-gradient(180deg, var(--primaryBgA), var(--primaryBgB));
+  border-color: var(--primaryStroke);
+}
+.btn--ghost{
+  background: rgba(0,0,0,0.22);
+  border-color: rgba(255,255,255,0.12);
+}
+.btn--compact{
+  padding: 9px 10px;
+  border-radius: 13px;
+}
+
+/* Token inline */
+.tokenInline{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.18);
+}
+.tokenInline__input{
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  padding: 6px 6px;
+}
+.tokenInline__input::placeholder{
+  color: rgba(255,255,255,0.42);
+}
+
+/* Icon buttons */
+.iconBtn{
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.88);
+  cursor: pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+.iconBtn:hover{
+  border-color: rgba(96,165,250,0.55);
+  transform: translateY(-1px);
+}
+.iconBtn:disabled{
+  opacity: 0.55;
+  cursor:not-allowed;
+  transform: none;
+}
+.iconBtn--small{
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+/* ===================== LAYOUT ===================== */
+.layout{
+  display:grid;
+  grid-template-columns: 280px 1fr;
+  gap: 12px;
+  align-items:start;
+}
+
+/* Sidebar */
+.sidebar{
+  padding: 14px;
+  position: sticky;
+  top: 14px;
+}
+.sidebar__section{
+  display:grid;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius2);
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.14);
+}
+.sidebar__section + .sidebar__section{
+  margin-top: 12px;
+}
+.sidebar__title{
+  font-weight: 950;
+  letter-spacing: 0.2px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.78);
+}
+.sidebar__divider{
+  height: 1px;
+  background: rgba(255,255,255,0.10);
+  margin: 2px 0;
+}
+
+/* Main column */
+.main{
+  display:grid;
+  gap: 12px;
+}
+
+/* ===================== BAR (loader + errors) ===================== */
+.bar{
+  padding: 12px 14px;
+  display:flex;
+  gap: 12px;
+  align-items:center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.loader{
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.spinner{
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.20);
+  border-top-color: rgba(255,255,255,0.70);
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin{ to { transform: rotate(360deg); } }
+.is-hidden{ display:none !important; }
+
+.error{
+  flex: 1 1 520px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--badStroke);
+  background: var(--badBg);
+  color: rgba(255,255,255,0.92);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* ===================== CONTENT ===================== */
+.content{ margin-top: 2px; }
+
+.grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.card{
+  padding: 16px 18px;
+}
+
+.card--wide{
+  grid-column: 1 / -1;
+}
+
+.card__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--stroke2);
+}
+
+.card__head h2{
+  margin:0;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+
+.mini{
+  font-size: 12px;
+  color: rgba(255,255,255,0.56);
+  white-space: nowrap;
+}
+
+.profile{
+  display:grid;
+  gap: 12px;
+}
+
+.empty{
+  color: var(--muted);
+  font-size: 13px;
+  padding: 12px;
+  border: 1px dashed rgba(255,255,255,0.18);
+  border-radius: 14px;
+  background: rgba(0,0,0,0.10);
+}
+
+/* Profile card */
+.profileCard{
+  display:grid;
+  grid-template-columns: 84px 1fr;
+  gap: 12px;
+  align-items:center;
+  padding: 12px;
+  border-radius: var(--radius2);
+  background: var(--panel2);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
+.avatar{
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.25);
+}
+
+.meta{
+  display:grid;
+  gap: 7px;
+}
+
+.meta .name{
+  font-weight: 950;
+  font-size: 15px;
+  letter-spacing: 0.15px;
+}
+
+.meta .line{
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mutedInline{
+  color: rgba(255,255,255,0.58);
+  font-style: italic;
+}
+
+/* Permissions list */
+.permBox{ display:block; }
+
+.permList{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display:grid;
+  gap: 10px;
+}
+
+.permItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.18);
+}
+
+.permName{
+  font-size: 13px;
+  color: rgba(255,255,255,0.86);
+  font-weight: 850;
+}
+
+.permStatus{
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.06);
+  white-space: nowrap;
+}
+.permStatus--ok{
+  border-color: var(--okStroke);
+  background: var(--okBg);
+  color: rgba(235,255,243,0.92);
+}
+.permStatus--bad{
+  border-color: var(--badStroke);
+  background: var(--badBg);
+  color: rgba(255,235,240,0.92);
+}
+
+/* JSON */
+.code{
+  margin:0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.30);
+  border: 1px solid rgba(255,255,255,0.12);
+  overflow:auto;
+  max-height: 380px;
+  line-height: 1.45;
+  font-size: 12.5px;
+}
+
+.note{
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.62);
+  line-height: 1.45;
+}
+
+/* Hint blocks */
+.hintBlock{
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.hintBlock code{
+  color: rgba(255,255,255,0.90);
+}
+
+/* Footer */
+.footer{
+  text-align:center;
+  color: rgba(255,255,255,0.56);
+  font-size: 12px;
+  padding: 8px 0 2px;
+}
+
+/* ===================== MODALS ===================== */
+.modal{
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display:grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.modal__backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+}
+
+.modal__panel{
+  position: relative;
+  width: min(720px, 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(10, 14, 24, 0.82);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+.modal__head{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 12px;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+
+.modal__title{
+  margin:0;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+
+.modal__body{
+  padding: 14px 14px 6px;
+  display:grid;
+  gap: 12px;
+}
+
+.modal__foot{
+  padding: 12px 14px 14px;
+  display:flex;
+  justify-content:flex-end;
+  gap: 10px;
+}
+
+/* Modal fields */
+.field label{
+  display:block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.15px;
+}
+
+.field input,
+.field select{
+  width:100%;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.26);
+  color: var(--text);
+  outline: none;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.field input::placeholder{
+  color: rgba(255,255,255,0.42);
+}
+
+.field input:focus,
+.field select:focus{
+  border-color: rgba(96,165,250,0.74);
+  background: rgba(0,0,0,0.30);
+}
+
+.field input:disabled,
+.field select:disabled{
+  opacity: 0.75;
+}
+
+.tokenRow{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+}
+
+.hint{
+  margin-top: 7px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.56);
+  line-height: 1.35;
+}
+.hint code{
+  color: rgba(255,255,255,0.88);
+}
+
+.modalGrid{
+  display:grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 12px;
+  align-items:start;
+}
+
+.checklist{
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255,255,255,0.74);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.checklist code{
+  color: rgba(255,255,255,0.90);
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 1080px){
+  .topbar{
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .topbar__center{
+    justify-content:flex-start;
+  }
+
+  /* On smaller screens, make it stack cleanly (no hacks) */
+  .topbar__right{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "token"
+      "fetch"
+      "auth";
+    justify-content: stretch;
+  }
+
+  .tokenInline{
+    width: 100%;
+    justify-self: stretch;
+  }
+  #btnFetch{
+    width: 100%;
+  }
+
+  /* Put login/logout side-by-side on mobile without transforms */
+  #btnLogin, #btnLogout{
+    width: 100%;
+    transform: none;
+  }
+
+  /* When stacked, we want auth buttons to just appear after fetch */
+  #btnLogin{ margin-right: 0; }
+  #btnLogout{ margin-right: 0; }
+
+  .layout{
+    grid-template-columns: 1fr;
+  }
+  .sidebar{
+    position: static;
+  }
+  .grid{
+    grid-template-columns: 1fr;
+  }
+  .card--wide{
+    grid-column: auto;
+  }
+  .modalGrid{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px){
+  .brand{ min-width: 0; }
+  .btn{ width: 100%; }
+  .topbar__right{ width: 100%; }
+  .tokenInline{ width: 100%; }
+  .tokenInline__input{ width: 100%; }
+}

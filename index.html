@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraphScope — Facebook Graph API (OAuth 2.0)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Required by FB JS SDK (safe to keep even if you use redirect OAuth) -->
+  <div id="fb-root"></div>
+
+  <main class="app" aria-label="GraphScope App">
+    <!-- HEADER -->
+    <header class="topbar" aria-label="Top bar">
+      <div class="topbar__left">
+        <div class="brand">
+          <div class="brand__mark" aria-hidden="true">GS</div>
+          <div class="brand__text">
+            <h1 class="brand__title">GraphScope</h1>
+            <p class="brand__sub">Facebook Graph API • OAuth 2.0 • Postman + fetch()</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar__center">
+        <div class="statusGroup" aria-label="Request status + session">
+          <span id="statusPill" class="pill pill--idle">Idle</span>
+
+          <div class="session">
+            <span class="session__label">Session:</span>
+            <span id="sessionState" class="session__state">Not connected</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar__right" aria-label="Main actions">
+        <!-- OAuth -->
+        <button id="btnLogin" class="btn btn--primary btn--compact" type="button">
+          Login
+        </button>
+        <button id="btnLogout" class="btn btn--compact" type="button" disabled>
+          Logout
+        </button>
+
+        <div class="topbar__divider" aria-hidden="true"></div>
+
+        <!-- Token typing (MAIN UI) -->
+        <div class="tokenInline" aria-label="Access token input">
+          <input
+            id="tokenInlineInput"
+            class="tokenInline__input"
+            type="password"
+            placeholder="Access Token (never commit)"
+            autocomplete="off"
+            inputmode="text"
+          />
+          <button
+            id="btnToggleTokenInline"
+            class="iconBtn iconBtn--small"
+            type="button"
+            aria-label="Toggle token visibility"
+            title="Show/Hide token"
+          >
+            <span aria-hidden="true">👁</span>
+          </button>
+        </div>
+
+        <button id="btnFetch" class="btn btn--primary btn--compact" type="button">
+          Fetch
+        </button>
+      </div>
+    </header>
+
+    <!-- LAYOUT: SIDEBAR + MAIN -->
+    <section class="layout" aria-label="Layout">
+      <!-- SIDEBAR (all other options) -->
+      <aside class="sidebar" aria-label="Sidebar options">
+        <div class="sidebar__section">
+          <div class="sidebar__title">Options</div>
+
+          <button id="btnOpenSettings" class="btn btn--ghost" type="button">
+            Settings
+          </button>
+
+          <button id="btnOpenChecklist" class="btn btn--ghost" type="button">
+            Postman
+          </button>
+
+          <div class="sidebar__divider" aria-hidden="true"></div>
+
+          <button id="btnClear" class="btn" type="button">
+            Clear
+          </button>
+
+          <button id="btnCopyJson" class="btn btn--ghost" type="button">
+            Copy JSON
+          </button>
+
+          <button id="btnOpenToken" class="btn btn--ghost" type="button" title="Optional token modal">
+            Token (modal)
+          </button>
+        </div>
+
+        <div class="sidebar__section">
+          <div class="sidebar__title">Quick Notes</div>
+          <div class="hintBlock">
+            <strong>Heads-up:</strong> OAuth redirect won’t work on <code>file://</code>.
+            Use Live Server or an HTTPS tunnel URL.
+          </div>
+          <div class="hintBlock">
+            <strong>Rubric:</strong> Settings holds required parameters (<code>fields</code>, <code>type</code>).
+            Postman checklist helps your demo recording.
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div class="main">
+        <!-- BAR (loader + errors) -->
+        <section class="bar" aria-label="Loader and errors">
+          <div id="loader" class="loader is-hidden" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Loading…</span>
+          </div>
+          <div id="errorBox" class="error is-hidden" role="alert"></div>
+        </section>
+
+        <!-- CONTENT -->
+        <section class="content" aria-label="Results">
+          <div class="grid">
+            <!-- Profile -->
+            <article class="card">
+              <div class="card__head">
+                <h2>Profile</h2>
+                <span class="mini">GET /me + GET /me/picture</span>
+              </div>
+              <div id="profileBox" class="profile">
+                <div class="empty">No data yet. Click <strong>Fetch</strong>.</div>
+              </div>
+            </article>
+
+            <!-- Permissions -->
+            <article class="card">
+              <div class="card__head">
+                <h2>Permissions</h2>
+                <span class="mini">GET /me/permissions</span>
+              </div>
+
+              <div id="permBox" class="permBox">
+                <div class="empty">No data yet. Fetch to see granted scopes.</div>
+              </div>
+
+              <div class="note">
+                <strong>Why this helps your rubric:</strong> It proves OAuth scopes and permissions granted to the token.
+              </div>
+            </article>
+
+            <!-- Raw JSON -->
+            <article class="card card--wide">
+              <div class="card__head">
+                <h2>Raw JSON</h2>
+                <span class="mini">Debug + demo recording</span>
+              </div>
+
+              <pre id="jsonBox" class="code">{}</pre>
+
+              <div class="note">
+                <strong>Demo tip:</strong> Show success JSON, then paste an invalid token and show the error JSON (401/403).
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span>Powered by Meta Facebook Graph API</span>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== MODALS ===================== -->
+
+  <!-- TOKEN MODAL (retained as optional) -->
+  <div id="modalToken" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="tokenTitle">
+    <div class="modal__backdrop" data-close="true"></div>
+    <div class="modal__panel" role="document">
+      <div class="modal__head">
+        <h3 id="tokenTitle" class="modal__title">Access Token (Optional)</h3>
+        <button class="iconBtn iconBtn--small" type="button" data-close="true" aria-label="Close token modal">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <div class="hintBlock">
+          Token typing is already on the main UI. This modal is kept for your rubric/demo notes and as a fallback UI.
+        </div>
+
+        <div class="field">
+          <label for="tokenInput">Access Token</label>
+
+          <div class="tokenRow">
+            <input
+              id="tokenInput"
+              type="password"
+              placeholder="Token (mirrors the main input)"
+              autocomplete="off"
+            />
+            <button
+              id="btnToggleToken"
+              class="iconBtn"
+              type="button"
+              aria-label="Toggle token visibility"
+              title="Show/Hide token"
+            >
+              <span aria-hidden="true">👁</span>
+            </button>
+          </div>
+
+          <div class="hint">
+            Do not commit tokens. Use placeholder in README: <code>YOUR_ACCESS_TOKEN_HERE</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--ghost" type="button" data-close="true">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="modalSettings" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal__backdrop" data-close="true"></div>
+    <div class="modal__panel" role="document">
+      <div class="modal__head">
+        <h3 id="settingsTitle" class="modal__title">Request Settings</h3>
+        <button class="iconBtn iconBtn--small" type="button" data-close="true" aria-label="Close settings modal">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <div class="modalGrid">
+          <div class="field">
+            <label for="fieldsInput">Fields</label>
+            <input
+              id="fieldsInput"
+              type="text"
+              value="id,name"
+              placeholder="id,name"
+              inputmode="text"
+            />
+            <div class="hint">
+              Comma-separated. Allowed: letters, numbers, underscore, comma.
+              <br />
+              You may type <code>email</code>, but it may not be returned unless permission is granted.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="picType">Picture Type</label>
+            <select id="picType">
+              <option value="large" selected>large</option>
+              <option value="normal">normal</option>
+              <option value="small">small</option>
+              <option value="square">square</option>
+            </select>
+            <div class="hint">Uses <code>/me/picture?redirect=0&amp;type=…</code></div>
+          </div>
+        </div>
+
+        <div class="hintBlock">
+          <strong>Rubric coverage:</strong> This modal makes it obvious where required parameters live (fields/type), without cluttering your main page.
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--ghost" type="button" data-close="true">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSTMAN CHECKLIST MODAL -->
+  <div id="modalChecklist" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="checkTitle">
+    <div class="modal__backdrop" data-close="true"></div>
+    <div class="modal__panel" role="document">
+      <div class="modal__head">
+        <h3 id="checkTitle" class="modal__title">Postman Demo Checklist</h3>
+        <button class="iconBtn iconBtn--small" type="button" data-close="true" aria-label="Close checklist modal">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <div class="hintBlock">
+          Use this during your recording to ensure you hit every rubric item.
+        </div>
+
+        <ul class="checklist">
+          <li>Test <code>/me</code>, <code>/me/picture</code>, <code>/me/permissions</code></li>
+          <li>Show auth setup (token), parameters, headers</li>
+          <li>Show success + error: 401/403/404/429</li>
+          <li>Explain required parameters: <code>access_token</code>, <code>fields</code>, <code>redirect</code>, <code>type</code></li>
+        </ul>
+
+        <div class="hintBlock">
+          <strong>Tip:</strong> After a successful Fetch, paste <code>INVALID_TOKEN</code> into the main token input and Fetch again to show 401/403.
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--ghost" type="button" data-close="true">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
